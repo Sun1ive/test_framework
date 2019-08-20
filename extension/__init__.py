@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
 import socketio
-import uuid
 
 from emitter import Emitter
 from typing import Optional, Any
 from enums import EVENTS_MAP, SERVICES_MAP
-
-
-def getId() -> str:
-    return str(uuid.uuid4())
-
+from utils import getId
 
 HOST = '127.0.0.1'
 PORT = "3000"
@@ -52,12 +47,10 @@ class ServiceEndpoint():
         return value
 
     def get_properties(self, service: str) -> None:
-        id: str = str(uuid.uuid4())
-
-        print(f"id = {id}, service = {service}")
+        print(f"service = {service}")
 
         self.socket.emit(EVENTS_MAP.SERVICE_REQUEST.value, {
-            'id': id,
+            'id': getId(),
             'method': '<get>',
             'params': {},
             'service': service
@@ -75,12 +68,16 @@ class ServiceEndpoint():
 
         print('service attached ', service)
 
-        if service == SERVICES_MAP.PRINTER_SERVICE.value:
-            self.socket.emit(
-                EVENTS_MAP.SERVICE_SUBSCRIBE.value,
-                self.service
-            )
-            self.emitter.emit("ep_attached", True)
+        if service == self.service:
+            self.socket.emit(EVENTS_MAP.SERVICE_SUBSCRIBE.value, self.service)
+            self.emitter.emit("ep_attached", {'name': self.service})
+
+        # if service == SERVICES_MAP.PRINTER_SERVICE.value:
+        #     self.socket.emit(
+        #         EVENTS_MAP.SERVICE_SUBSCRIBE.value,
+        #         self.service
+        #     )
+        #     self.emitter.emit("ep_attached", True)
 
         # elif service == SERVICES_MAP.ORDER_SERVICE.value:
         #     self.socket.emit(
